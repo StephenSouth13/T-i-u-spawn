@@ -7,7 +7,13 @@
 # 🎬 Demo
 
 <p align="center">
-  <video src="img&video/demo.mp4" controls width="600"></video>
+  <a href="https://youtu.be/TGVWkJIgo4I">
+    <img src="https://img.youtube.com/vi/TGVWkJIgo4I/maxresdefault.jpg" width="700">
+  </a>
+</p>
+
+<p align="center">
+Click the image to watch the demo video
 </p>
 
 ---
@@ -47,96 +53,14 @@
 # 🧠 Architecture
 
 Infinity Horde uses a **GPU-first simulation pipeline** to eliminate CPU bottlenecks.
-
-
-CPU
-↓
-Spawn Parameters
-↓
-Compute Shader Simulation
-↓
-Structured GPU Buffers
-↓
-RenderMeshIndirect
-↓
-GPU Rendering
-
-
----
-
-# 🧮 Movement Model
-
-Velocity update:
-
-
-Velocity = lerp(CurrentVel, TargetDir * Speed, Δt)
-
-
-Position update:
-
-
-Position = Position + Velocity * Δt
-
-
-### Benefits
-
-- No PhysX overhead  
-- Fully parallel GPU compute  
-- Cache-friendly memory access  
-
----
-
-# 🧩 Data Structure
-
-```hlsl
-struct EnemyData
-{
-    float3 position;
-    float3 velocity;
-    float lifetime;
-};
-
-Stored in GPU memory using:
-
-StructuredBuffer<EnemyData>
 📈 Performance
-Entity Count	FPS	CPU Load
-100K	200+	~1%
-1M	150+	~2%
-10M	90+	~3%
-50M+	GPU dependent	~3%
-⚙️ Requirements
-Component	Requirement
-Unity	2021.3 LTS or newer
-Render Pipeline	Universal Render Pipeline (URP)
-GPU	Compute Shader support
-Graphics API	DX11 / DX12 / Vulkan / Metal
-Memory	16GB+ recommended
-🧪 Usage
+| Entity Count | FPS           | CPU Load |
+| ------------ | ------------- | -------- |
+| 100K         | 200+          | ~1%      |
+| 1M           | 150+          | ~2%      |
+| 10M          | 90+           | ~3%      |
+| 50M+         | GPU dependent | ~3%      |
 
-Assign Enemy Mesh
-
-Assign Instanced Material
-
-Configure Spawn Portals
-
-Assign Target Object
-
-Adjust simulation parameters
-
-SpawnRate
-MaxEntityCount
-MovementSpeed
-
-Run the scene → the swarm simulation begins.
-
-🔬 Use Cases
-English	Tiếng Việt
-Massive zombie survival games	Game sinh tồn zombie quy mô lớn
-RTS army simulations	Mô phỏng quân đội RTS
-GPU rendering research	Nghiên cứu render GPU
-Graphics pipeline stress testing	Stress test pipeline đồ họa
-Procedural crowd systems	Hệ thống đám đông procedural
 👨‍💻 Author
 
 Quách Thành Long
@@ -149,10 +73,3 @@ https://quachthanhlong.com
 stephensouth1307@gmail.com
 
 🏫 VTC Academy — Game Development Department
-
-📜 License
-MIT License
-
-© 2026 Infinity Horde — Engineered by Quách Thành Long
-
-When CPU reaches its limits, the GPU leads the swarm.
