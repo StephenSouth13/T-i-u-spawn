@@ -7,7 +7,7 @@
 # 🎬 Demo
 
 <p align="center">
-  <video src="img&video/demo.mp4" controls width="800"></video>
+  <video src="img&video/demo.mp4" controls width="600"></video>
 </p>
 
 ---
