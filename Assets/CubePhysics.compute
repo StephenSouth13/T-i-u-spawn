@@ -1,56 +1,52 @@
 #pragma kernel CSMain
 
-struct CubeData {
+struct EnemyData {
     float3 position;
     float3 velocity;
     float life;
 };
 
-RWStructuredBuffer<CubeData> _Buffer;
+RWStructuredBuffer<EnemyData> _Buffer;
 float3 _TargetPos;
 float3 _PortalPos;
 float _DeltaTime;
-float _Time;
+float _MoveSpeed;
+int _MaxCount;
+int _CurrentCount;
 
 float hash(float n) { return frac(sin(n) * 43758.5453123); }
 
 [numthreads(64,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID) {
     uint index = id.x + id.y * 65535 * 64; 
-    CubeData cube = _Buffer[index];
+    if (index >= (uint)_CurrentCount) return;
+
+    EnemyData enemy = _Buffer[index];
     
-    float3 toTarget = _TargetPos - cube.position;
-    float dist = length(toTarget);
-    float3 dir = normalize(toTarget);
-
-    // 1. CHẾ ĐỘ DI CHUYỂN THÔNG MINH
-    if (dist > 3.0) {
-        // Nếu ở xa: Lao nhanh tới mục tiêu
-        float3 noise = float3(hash(index), hash(index + 1), hash(index + 2)) - 0.5;
-        cube.velocity = lerp(cube.velocity, (dir + noise * 0.2) * 12.0, _DeltaTime);
-    } 
-    else {
-        // Nếu đã đến sát Target: Chuyển sang vây quanh, xô đẩy nhau
-        float3 orbit = cross(dir, float3(0, 1, 0)) * 2.0;
-        cube.velocity = lerp(cube.velocity, orbit, _DeltaTime * 5.0);
-        // Đẩy nhẹ ra để không bị dính chặt vào tâm
-        cube.position += dir * -0.1 * _DeltaTime; 
+    // Nếu quái vật đang ở dưới lòng đất (chưa spawn), đưa nó lên Cổng ngẫu nhiên
+    if (enemy.position.y < -50.0f) {
+        float h = hash(index);
+        enemy.position = _PortalPos + float3(hash(h)-0.5, 0, hash(h+1)-0.5) * 3.0;
+        enemy.position.y = 0;
     }
 
-    // 2. CẬP NHẬT VỊ TRÍ
-    cube.position += cube.velocity * _DeltaTime;
+    float3 targetDir = _TargetPos - enemy.position;
+    targetDir.y = 0; 
+    float dist = length(targetDir);
+    float3 dir = normalize(targetDir);
 
-    // 3. VA CHẠM MẶT ĐẤT (PLANE) - Giúp quái vật không xuyên xuống đất
-    if (cube.position.y < 0) {
-        cube.position.y = 0;
-        cube.velocity.y *= -0.2;
+    // Di chuyển bám đất
+    if (dist > 1.2) {
+        float h = hash(index);
+        float3 noise = float3(hash(h)-0.5, 0, hash(h+1)-0.5);
+        enemy.velocity = lerp(enemy.velocity, (dir + noise * 0.4) * _MoveSpeed, _DeltaTime * 2.0);
+    } else {
+        // Vây kín mục tiêu, không biến mất
+        enemy.velocity = lerp(enemy.velocity, float3(0,0,0), _DeltaTime * 5.0);
     }
 
-    // KHÔNG CÓ RESET (Để quái vật tồn tại vĩnh viễn)
-    // Chúng ta chỉ Reset nếu quái bay quá xa khỏi bản đồ (ví dụ 1000m) để tránh lỗi tọa độ
-    if (length(cube.position) > 1000.0) {
-        cube.position = _PortalPos;
-    }
+    enemy.position += enemy.velocity * _DeltaTime;
+    enemy.position.y = 0; // Khóa chặt mặt đất
 
-    _Buffer[index] = cube;
+    _Buffer[index] = enemy;
 }
