@@ -1,14 +1,24 @@
-// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
-RWTexture2D<float4> Result;
+struct CubeData {
+    float3 position;
+    float3 velocity;
+};
 
-[numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID)
-{
-    // TODO: insert actual code here!
+RWStructuredBuffer<CubeData> _Buffer;
+float _DeltaTime;
 
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+    CubeData cube = _Buffer[id.x];
+    
+    // Di chuyển đơn giản
+    cube.position += cube.velocity * _DeltaTime;
+    
+    // Va chạm biên (tự nảy lại trong vùng 100 đơn vị)
+    if (abs(cube.position.x) > 50) cube.velocity.x *= -1;
+    if (abs(cube.position.y) > 50) cube.velocity.y *= -1;
+    if (abs(cube.position.z) > 50) cube.velocity.z *= -1;
+    
+    _Buffer[id.x] = cube;
 }
