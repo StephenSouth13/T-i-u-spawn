@@ -1,7 +1,7 @@
 Shader "Custom/InstancedIndirect"
 {
     Properties { 
-        _Color("Color", Color) = (1,1,1,1) 
+        _Color("Horde Color", Color) = (1,1,1,1) 
         _Scale("Model Scale", Float) = 1.0
     }
     SubShader
@@ -14,14 +14,17 @@ Shader "Custom/InstancedIndirect"
             #pragma fragment frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            // Cấu trúc này PHẢI khớp 100% với file .cs và .compute
+            // Cấu trúc dữ liệu khớp với Compute Shader
             struct CubeData { 
                 float3 position; 
                 float3 velocity; 
                 float life; 
             };
 
+            // Buffer chứa 10 triệu thực thể
             StructuredBuffer<CubeData> _Buffer;
+            
+            // Các biến điều khiển từ C# (GoogleAds sẽ thay đổi _Color)
             float4 _Color;
             float _Scale;
 
@@ -38,12 +41,11 @@ Shader "Custom/InstancedIndirect"
             {
                 Varyings OUT;
                 
-                // 1. Lấy dữ liệu từ Buffer
+                // 1. Lấy dữ liệu từ GPU Buffer
                 float3 worldPos = _Buffer[instanceID].position;
                 float3 vel = _Buffer[instanceID].velocity;
 
-                // 2. Tạo ma trận xoay (Để model nhìn về hướng velocity)
-                // Nếu quái đứng im thì mặc định nhìn về phía trước (0,0,1)
+                // 2. Tạo ma trận xoay nhìn về hướng di chuyển (Look Rotation)
                 float3 forward = normalize(vel + float3(0, 0, 0.00001)); 
                 float3 up = float3(0, 1, 0);
                 float3 right = normalize(cross(up, forward));
@@ -51,13 +53,15 @@ Shader "Custom/InstancedIndirect"
                 
                 float3x3 rotationMatrix = float3x3(right, up, forward);
 
-                // 3. Tính toán vị trí đỉnh: Xoay -> Scale -> Dịch chuyển
+                // 3. Transform: Scale -> Rotate -> Translate
                 float3 localPos = IN.positionOS.xyz * _Scale;
-                float3 rotatedPos = mul(localPos, rotationMatrix); // Xoay model
+                float3 rotatedPos = mul(localPos, rotationMatrix); 
                 float3 finalWorldPos = rotatedPos + worldPos;
 
                 OUT.positionCS = TransformWorldToHClip(finalWorldPos);
-                OUT.color = _Color;
+                
+                // Gán màu đã được cập nhật từ GoogleAdsInteract
+                OUT.color = _Color; 
                 return OUT;
             }
 

@@ -6,6 +6,7 @@ using System;
 public class GoogleAdsInteract : MonoBehaviour
 {
     public BannerViewController bannerController;
+    public MillionManager millionManager;
 
 #if UNITY_ANDROID
     private string rewardedAdUnitId = "ca-app-pub-3940256099942544/5224354917";
@@ -42,73 +43,61 @@ public class GoogleAdsInteract : MonoBehaviour
     // Banner
     // ========================
 
-    public void ShowBanner()
-    {
-        bannerController?.ShowAd();
-    }
-
-    public void HideBanner()
-    {
-        bannerController?.HideAd();
-    }
+    public void ShowBanner() => bannerController?.ShowAd();
+    public void HideBanner() => bannerController?.HideAd();
 
     // ========================
-    // Rewarded Ads
+    // Rewarded Ads Logic
     // ========================
 
     public void LoadRewardedAd()
     {
         Debug.Log("Loading Rewarded Ad...");
-
         AdRequest adRequest = new AdRequest();
 
-        RewardedAd.Load(rewardedAdUnitId, adRequest,
-            (RewardedAd ad, LoadAdError error) =>
+        RewardedAd.Load(rewardedAdUnitId, adRequest, (RewardedAd ad, LoadAdError error) =>
+        {
+            if (error != null || ad == null)
             {
-                if (error != null || ad == null)
-                {
-                    Debug.LogError("Rewarded ad failed to load: " + error);
-                    return;
-                }
-
-                Debug.Log("Rewarded ad loaded.");
-
-                rewardedAd = ad;
-
-                RegisterRewardedEvents(ad);
-            });
+                Debug.LogError("Rewarded ad failed to load: " + error);
+                return;
+            }
+            Debug.Log("Rewarded ad loaded.");
+            rewardedAd = ad;
+            RegisterRewardedEvents(ad);
+        });
     }
 
+    // CHỈ GIỮ LẠI MỘT HÀM SHOW DUY NHẤT CÓ ĐỔI MÀU
     public void ShowRewardedAd()
     {
-        if (rewardedAd != null)
+        if (rewardedAd != null && rewardedAd.CanShowAd())
         {
             rewardedAd.Show((Reward reward) =>
             {
                 Debug.Log("User earned reward: " + reward.Amount);
 
-                // Ví dụ: cộng thưởng
-                // PlayerCoins += reward.Amount;
+                // --- PHẦN THƯỞNG ĐỔI MÀU QUÂN ĐOÀN ---
+                if (millionManager != null)
+                {
+                    Color randomColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+                    millionManager.SetEnemyColor(randomColor);
+                }
             });
         }
         else
         {
-            Debug.Log("Rewarded ad not ready");
+            Debug.Log("Rewarded ad not ready. Loading a new one...");
+            LoadRewardedAd();
         }
     }
-
-    // ========================
-    // Rewarded Events
-    // ========================
 
     private void RegisterRewardedEvents(RewardedAd ad)
     {
         ad.OnAdFullScreenContentClosed += () =>
         {
             Debug.Log("Rewarded ad closed.");
-
-            // Load lại quảng cáo mới
-            LoadRewardedAd();
+            LoadRewardedAd(); // Load cái mới để lần sau xem tiếp
         };
 
         ad.OnAdFullScreenContentFailed += (AdError error) =>

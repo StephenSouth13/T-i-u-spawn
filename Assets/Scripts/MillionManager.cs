@@ -117,4 +117,13 @@ public class MillionManager : MonoBehaviour {
         dataBuffer?.Release();
         argsBuffer?.Release();
     }
+    // Thêm hàm này vào MillionManager.cs
+public void SetEnemyColor(Color newColor)
+{
+    if (material != null)
+    {
+        // "_Color" là tên biến trong file .shader của bạn
+        material.SetColor("_Color", newColor);
+    }
+}
 }

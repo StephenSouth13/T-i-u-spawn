@@ -150,4 +150,27 @@ public class AdsManager : MonoBehaviour
             Debug.Log("Rewarded not ready");
         }
     }
+    // Thêm hàm này để xóa Banner cũ trước khi tạo cái mới ở vị trí mới
+public void DestroyBanner()
+{
+    if (bannerView != null)
+    {
+        Debug.Log("Destroying banner view.");
+        bannerView.Destroy();
+        bannerView = null;
+    }
+}
+
+// Hàm này giúp bạn tạo Banner với kích thước và vị trí tùy ý từ nút bấm
+public void CreateNewCustomBanner(AdSize size, AdPosition position)
+{
+    Debug.Log($"Creating banner at {position} with size {size}");
+    
+    // Tạo mới với thông số truyền vào
+    bannerView = new BannerView(bannerId, size, position);
+    
+    // Load lại nội dung quảng cáo
+    AdRequest request = new AdRequest();
+    bannerView.LoadAd(request);
+}
 }
