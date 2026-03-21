@@ -6,6 +6,10 @@
 
 ---
 # 🌌 Infinity Horde — GPU Massive Swarm System
+<p align="center">
+  <img src="image/readme/1774084931067.png" width="800" alt="VTC Academy Logo">
+</p>
+
 
 
 > **High-performance GPU-driven swarm simulation capable of rendering and simulating 10M+ entities in real-time with a single Draw Call.**
